@@ -1,0 +1,102 @@
+﻿{
+  "version": "1.0",
+  "default_mode": "deep",
+  "modes": {
+    "deep": {
+      "description": "Full 18-section investment sector report.",
+      "required_sections": [
+        "Дата анализа, scope и ограничения",
+        "Короткий вердикт",
+        "Карта подсекторов",
+        "Как сектор зарабатывает деньги",
+        "Размер рынка и рост",
+        "Структурный / циклический / временный рост",
+        "3–5 ключевых драйверов",
+        "Цепочка стоимости и profit pool",
+        "Конкуренция и ключевые игроки",
+        "Экономика сектора и метрики",
+        "Контекст оценки и что заложено в цену",
+        "Бенефициары, риски, катализаторы и эффекты второго порядка",
+        "Инвестиционная карта и ранжирование возможностей",
+        "Анти-тезис",
+        "Метрики мониторинга",
+        "Итоговый инвестиционный вывод",
+        "Сильные вопросы",
+        "Источники и надежность данных"
+      ],
+      "require_evidence_table": true,
+      "require_source_table": true,
+      "require_tiered_metrics": true,
+      "require_fact_interpretation_assumption": true,
+      "require_monitoring_metrics_3_to_5": true,
+      "require_anti_thesis": true,
+      "final_conclusion_sentences": {"exact": 8}
+    },
+    "standard": {
+      "description": "Compact investment report with evidence, confidence, anti-thesis, monitoring metrics and sources.",
+      "required_sections": [
+        "Дата анализа, scope и ограничения",
+        "Короткий вердикт",
+        "Evidence table",
+        "Драйверы, profit pool и valuation",
+        "Anti-thesis и риски",
+        "Метрики мониторинга",
+        "Итоговый инвестиционный вывод",
+        "Источники и надежность данных"
+      ],
+      "require_evidence_table": true,
+      "require_source_table": true,
+      "require_tiered_metrics": true,
+      "require_fact_interpretation_assumption": true,
+      "require_monitoring_metrics_3_to_5": true,
+      "require_anti_thesis": true,
+      "final_conclusion_sentences": {"min": 3, "max": 6}
+    },
+    "short": {
+      "description": "Six-block short answer: verdict, drivers, profit pool, valuation, risks/anti-thesis, next steps plus sources/confidence.",
+      "required_sections": [
+        "Вердикт",
+        "Драйверы",
+        "Profit pool",
+        "Valuation",
+        "Риски и anti-thesis",
+        "Next steps, sources and confidence"
+      ],
+      "require_evidence_table": false,
+      "require_source_table": false,
+      "require_tiered_metrics": false,
+      "require_fact_interpretation_assumption": false,
+      "require_monitoring_metrics_3_to_5": false,
+      "require_anti_thesis": true,
+      "final_conclusion_sentences": {"min": 1, "max": 4}
+    }
+  },
+  "evidence_schema": {
+    "required_fields": ["Метрика", "Tier", "Значение", "Период наблюдения", "Дата публикации", "Дата доступа", "Источник", "Свежесть", "Надежность"],
+    "canonical_item_fields": ["metric", "tier", "value", "unit", "observation_period", "observation_date", "publication_date", "access_date", "source_name", "source_url", "source_type", "freshness", "reliability", "claim_type", "limitations"]
+  },
+  "source_schema": {
+    "required_fields": ["Источник", "Что подтверждает", "Период наблюдения", "Дата публикации", "Дата доступа", "Свежесть", "Надежность", "Ограничение"]
+  },
+  "scope_terms": [
+    ["дата", "analysis date", "date"],
+    ["сектор", "sector"],
+    ["тип объекта анализа", "object type", "company basket", "ETF", "theme", "catalyst"],
+    ["география", "geography"],
+    ["горизонт", "horizon"]
+  ],
+  "confidence": {
+    "keywords": ["Confidence level", "Уровень уверенности", "уверенность", "confidence"],
+    "high_values": ["высокая", "high"],
+    "medium_values": ["средняя", "medium"],
+    "low_values": ["низкая", "low"],
+    "stale_markers": ["stale", "potentially stale", "unknown", "устар", "не проверен", "ограничен", "limited"]
+  },
+  "claim_type_terms": ["Факт", "Fact", "Интерпретация", "Interpretation", "Допущение", "Assumption", "Гипотеза"],
+  "tier_terms": ["Tier 1", "Tier 2", "Tier 3"],
+  "anti_thesis_terms": ["Анти-тезис", "anti-thesis", "counterargument", "ломает тезис", "ломает вывод", "breaks the thesis"],
+  "monitoring_terms": ["Метрики мониторинга", "monitoring metrics"],
+  "market_size_terms": ["market size", "размер рынка", "growth", "CAGR", "рост"],
+  "placeholder_patterns": ["\\[[^\\]]+\\]", "<[^>]+>", "TBD", "TODO", "Ровно 8 предложений\\.?"],
+  "scenario_markers": ["## User request", "## Expected behavior", "## Fail conditions"]
+}

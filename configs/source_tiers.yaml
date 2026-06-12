@@ -1,0 +1,52 @@
+source_tiers:
+  tier_1_primary:
+    description: "Primary filings, regulator data, official statistics, company IR."
+    examples:
+      - SEC EDGAR
+      - Company annual reports
+      - Company quarterly reports
+      - Investor presentations
+      - U.S. Census
+      - EIA
+      - IEA
+      - Eurostat
+      - OECD
+      - IMF
+      - World Bank
+      - WTO
+      - IRENA
+      - FAO
+  tier_2_industry:
+    description: "Industry research and reputable consulting / market intelligence."
+    examples:
+      - McKinsey
+      - Bain
+      - BCG
+      - Deloitte
+      - PwC
+      - Gartner
+      - IDC
+      - S&P Global
+      - Wood Mackenzie
+  tier_3_news:
+    description: "News and secondary commentary for catalysts, not thesis foundation."
+    examples:
+      - Reuters
+      - Bloomberg
+      - Financial Times
+      - Wall Street Journal
+      - CNBC
+validation:
+  min_independent_sources_for_market_size: 2
+  require_company_filings_for_public_companies: true
+  require_data_date: true
+  require_observation_date: true
+  require_publication_date: true
+  require_access_date: true
+  require_freshness_status: true
+  require_confidence_level: true
+  require_tiered_metrics: true
+  require_fact_inference_hypothesis_split: true
+  require_fact_interpretation_assumption_split: true
+  disallow_high_confidence_when_freshness_unknown: true
+  disallow_tier_3_as_primary_thesis_support: true
