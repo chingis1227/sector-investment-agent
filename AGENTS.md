@@ -14,6 +14,21 @@ Developer checklist before final output:
 
 ---
 
+## Sector Analysis Autostart Rule
+
+When the user asks for sector, industry, market, theme, subsector, investment map, or similar investment research, do not ask the user to mention repository files. Automatically run the sector-agent workflow:
+
+1. Treat the raw user message as the request.
+2. Run `py -3 scripts/run_sector_agent.py --request "<raw user request>"` to create a run folder.
+3. Read the generated `request.json` and `codex_handoff.md`.
+4. Use `configs/report_contract.yaml`, `docs/workflow.md`, `docs/source-policy.md`, `docs/parsing-policy.md`, and `templates/sector-analysis-template.md`.
+5. Write the report to the `final_report_path` recorded in `request.json`; default mode is `deep` unless the user explicitly says `standard` or `short`.
+6. Run the validation command recorded in `validation_command.txt`.
+7. If validation fails, edit the report and rerun validation up to `max_validation_attempts`.
+8. Final response must include the report path, validation score, and any blocker if the report did not reach PASS.
+
+This repository does not require an OpenAI API key for normal Codex app use. Do not use deprecated custom prompts as the main workflow.
+
 # Sector Investment Analyst Agent Runtime Instructions
 
 ## Назначение

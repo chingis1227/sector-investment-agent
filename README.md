@@ -1,124 +1,122 @@
 # Sector Investment Agent
 
-Проект для создания AI-агента, который анализирует сектора и индустрии для инвестиционного исследовательского решения.
+AI agent workflow for investment-oriented sector and industry analysis. The goal is not to write a generic overview; the goal is to decide whether a sector deserves deeper work, where the profit pool is, who wins or loses, what is already priced in, and which metrics should be monitored.
 
-Агент не пишет обзор ради обзора. Его задача — помочь понять:
+## Use in Codex
 
-- сектор стоит изучать глубже или нет;
-- где находится profit pool;
-- кто выигрывает и проигрывает;
-- какие драйверы реально двигают рынок;
-- что уже заложено в цену;
-- какие метрики мониторить дальше.
+Open this repository in Codex and type a normal sector question, for example:
 
-## Что изменилось в v1 stabilization
+```text
+Analyze the AI infrastructure sector
+```
 
-В проект добавлен единый контракт отчета:
+Codex should automatically load `AGENTS.md`, create a run folder, write a deep report under `outputs/sector/`, run the validator, and repair the report until PASS or a clear blocker. You should not need to type "use AGENTS.md, workflow, template, and validator" every time.
 
-- `configs/report_contract.yaml` — single source of truth для режимов `short / standard / deep`, обязательных секций, evidence schema, source schema и pass/fail правил;
-- `scripts/validate_report.py` — config-driven валидатор с `--mode`;
-- `scripts/run_evals.py` — runner для pass/fail fixtures;
-- `evals/fixtures/` — исполняемые тестовые отчеты;
-- `evals/scenarios/` — сценарные описания, которые не запускаются валидатором напрямую.
+## Normal workflow
+
+```text
+user sector request
+-> AGENTS.md autostart rule
+-> scripts/run_sector_agent.py creates run artifacts
+-> Codex reads codex_handoff.md
+-> Codex writes outputs/sector/<slug>.md
+-> scripts/validate_report.py validates report
+-> Codex repairs until PASS or blocker
+-> final response with report path and validation score
+```
+
+Default report mode is `deep` unless the user explicitly asks for `standard` or `short`.
+
+## Optional runner usage
+
+Create a reproducible run folder without generating the report yourself:
+
+```powershell
+py -3 scripts/run_sector_agent.py --request "Analyze the AI infrastructure sector"
+```
+
+Expected artifacts:
+
+```text
+outputs/runs/YYYY-MM-DD-<slug>/
+  request.json
+  run_plan.md
+  task.md
+  codex_handoff.md
+  validation_command.txt
+```
+
+Optional flags:
+
+```powershell
+py -3 scripts/run_sector_agent.py --request "Short sector view" --mode short
+py -3 scripts/run_sector_agent.py --request "Test" --report-path outputs/sector/test.md
+py -3 scripts/run_sector_agent.py --request "Test" --max-validation-attempts 5
+```
+
+`--codex-exec` is optional and future-facing. It only works if `codex exec` is runnable in the local environment. Normal Codex app usage does not require an OpenAI API key.
 
 ## Report modes
 
-| Режим | Когда использовать | Контракт |
+| Mode | When to use | Contract |
 |---|---|---|
-| `deep` | Полный секторный отчет | 18 секций из `templates/sector-analysis-template.md`; default режим валидатора |
-| `standard` | Компактный инвестиционный отчет | evidence table, drivers/profit pool/valuation, anti-thesis, monitoring metrics, conclusion, sources |
-| `short` | Короткий ответ в чате | 6 блоков: вердикт, драйверы, profit pool, valuation, риски/anti-thesis, next steps + sources/confidence |
+| `deep` | Default for sector analysis | 18 sections from `templates/sector-analysis-template.md`, evidence, sources, confidence, anti-thesis, monitoring metrics |
+| `standard` | Only when the user explicitly asks for compact report | scope, verdict, evidence table, drivers/profit pool/valuation, anti-thesis, monitoring, conclusion, sources |
+| `short` | Only when the user explicitly asks for short answer | 6 blocks: verdict, drivers, profit pool, valuation, risks/anti-thesis, next steps + sources/confidence |
 
-Даже в коротком режиме нельзя убирать источники, свежесть, confidence и ограничения данных.
+## Project map
 
-## Что лежит в проекте
-
-| Файл / папка | Для чего нужен |
+| Path | Purpose |
 |---|---|
-| `AGENTS.md` | Главная инструкция для AI-агента |
-| `configs/report_contract.yaml` | Единый контракт режимов, секций, evidence/source schema и pass/fail правил |
-| `configs/source_tiers.yaml` | Справочник по типам источников и их надежности |
-| `docs/workflow.md` | Порядок работы агента и state machine |
-| `docs/source-policy.md` | Какие источники надежные, какие вторичные |
-| `docs/parsing-policy.md` | Как извлекать evidence items из сайтов, PDF и отчетов |
-| `docs/validation-rubric.md` | Как оценивать качество отчета |
-| `docs/reviewer-checklist.md` | Независимый чек-лист для глубоких отчетов |
-| `templates/sector-analysis-template.md` | Deep template на 18 секций |
-| `examples/example-output-skeleton.md` | Актуальный standard-mode пример структуры |
-| `evals/fixtures/pass/` | Отчеты, которые должны проходить валидатор |
-| `evals/fixtures/fail/` | Отчеты, которые должны падать валидатор |
-| `evals/scenarios/` | Описания тестовых сценариев, не report fixtures |
-| `scripts/validate_report.py` | Структурный gatekeeper валидатор |
-| `scripts/run_evals.py` | Запуск всех eval fixtures |
+| `AGENTS.md` | Primary runtime contract for Codex |
+| `configs/report_contract.yaml` | Single source of truth for modes, sections, evidence/source schema, pass/fail rules |
+| `docs/workflow.md` | Analysis state machine |
+| `docs/source-policy.md` | Source priority and reliability rules |
+| `docs/parsing-policy.md` | Evidence extraction policy |
+| `docs/validation-rubric.md` | Quality rubric |
+| `docs/reviewer-checklist.md` | Deep-report review checklist |
+| `templates/sector-analysis-template.md` | Deep template with 18 sections |
+| `scripts/run_sector_agent.py` | Creates run artifacts and Codex handoff |
+| `scripts/validate_report.py` | Validates reports against the contract |
+| `scripts/run_evals.py` | Runs pass/fail regression fixtures |
+| `evals/fixtures/` | Validator regression fixtures |
+| `outputs/sector/` | Final sector reports |
+| `outputs/runs/` | Local run artifacts, ignored by git |
 
-## Как пользоваться без технических знаний
+## Validation commands
 
-1. Открой `AGENTS.md`.
-2. Скопируй его в ChatGPT / Codex как инструкцию.
-3. Добавь запрос, например:
-
-```text
-Проанализируй сектор дата-центров.
-География: США.
-Горизонт: 3–12 месяцев.
-Режим отчета: standard.
-Цель: найти 3–5 инвестиционных направлений.
-Используй workflow, source policy, parsing policy, validation rubric, report_contract и template из проекта.
-```
-
-## Как должен работать агент
-
-```text
-запрос пользователя
-→ определение сектора, типа объекта, географии, горизонта и report mode
-→ план источников
-→ сбор и парсинг evidence items
-→ freshness check
-→ Tiered Metrics Map
-→ анализ сектора
-→ anti-thesis и confidence assignment
-→ mode-specific validation
-→ финальный отчет
-```
-
-## Как проверять отчет
-
-Deep report по умолчанию:
-
-```powershell
-py -3 scripts/validate_report.py outputs/sector/example-report.md
-```
-
-Явный режим:
-
-```powershell
-py -3 scripts/validate_report.py --mode deep outputs/sector/example-report.md
-py -3 scripts/validate_report.py --mode standard outputs/sector/example-report.md
-py -3 scripts/validate_report.py --mode short outputs/sector/example-report.md
-```
-
-Запуск всех eval fixtures:
+Run the full regression suite:
 
 ```powershell
 py -3 scripts/run_evals.py
 ```
 
-Отчет не стоит считать готовым, пока он не проходит валидатор для выбранного режима и человеческую инвестиционную проверку.
-
-## ??? ????????? ??????
-
-??????? ??????????????? run folder ??? ????????? ??????:
+Validate a deep report using default mode:
 
 ```powershell
-py -3 scripts/run_sector_agent.py --request "????????????? ?????? AI infrastructure" --dry-run
+py -3 scripts/validate_report.py outputs/sector/example-report.md
 ```
 
-???? `--mode` ?? ??????, runner ????? `configs/report_contract.yaml.default_mode`, ?? ???? `deep`. ???? ????? ??????? `standard` ??? `short`:
+Validate fixtures by mode:
 
 ```powershell
-py -3 scripts/run_sector_agent.py --request "??????? ??? ??????" --mode short --dry-run
+py -3 scripts/validate_report.py evals/fixtures/pass/normal-deep.md
+py -3 scripts/validate_report.py --mode standard evals/fixtures/pass/standard-valid.md
+py -3 scripts/validate_report.py --mode short evals/fixtures/pass/short-valid.md
 ```
 
-## ??? ??????, ??? ?????? ?????????
+## Real behavior test
 
-????? ????????? ??????? ????? ?????? ?????? ???????: `AGENTS.md ? report_contract.yaml ? workflow/source/parsing policy ? evidence table ? validation`. Deep report ?? ????????? ???????, ???? ?? ???????? `scripts/validate_report.py` ??? `--mode` ??? ? `--mode deep`.
+1. Start a new Codex thread in this repository.
+2. Type only: `Analyze the AI infrastructure sector`.
+3. Expected: Codex automatically creates `outputs/runs/...`, writes `outputs/sector/...`, runs validation, and reports the score.
+4. A deep report is complete only when it reaches `18/18 checks passed`.
+
+## Done When
+
+A sector report is complete only when:
+
+- it is saved under `outputs/sector/`;
+- it passes `scripts/validate_report.py` in the selected mode;
+- deep mode reaches `18/18 checks passed`;
+- the final response includes report path, validation score, and blockers if any.

@@ -31,3 +31,6 @@ Thumbs.db
 # Local temporary files
 *.tmp
 *.temp
+
+# Generated sector-agent run artifacts
+outputs/runs/
