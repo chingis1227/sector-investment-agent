@@ -1,4 +1,20 @@
-﻿# Sector Investment Analyst Agent
+# Repository Agent Contract
+
+This repository uses **AGENTS.md as the only primary runtime instruction file** for the Sector Investment Agent. Do not look for or rely on `agent.md`; it has been retired.
+
+Default report mode rule: if the user does not explicitly request `short` or `standard`, use `deep`. The default in `configs/report_contract.yaml` is the source of truth and must remain `deep`.
+
+Developer checklist before final output:
+
+1. Read and follow this `AGENTS.md`.
+2. Read `configs/report_contract.yaml` and lock the report mode.
+3. Follow `docs/workflow.md`, `docs/source-policy.md`, and `docs/parsing-policy.md`.
+4. Build evidence before conclusions.
+5. Validate saved reports with `scripts/validate_report.py` for the selected mode.
+
+---
+
+# Sector Investment Analyst Agent Runtime Instructions
 
 ## Назначение
 
@@ -69,7 +85,7 @@
 - `standard` — компактный инвестиционный отчет: scope, короткий вердикт, evidence table, драйверы / profit pool / valuation, anti-thesis, 3–5 monitoring metrics, итоговый вывод и источники.
 - `short` — короткий ответ в 6 блоках: вердикт, драйверы, profit pool, valuation, риски / anti-thesis, next steps + sources / confidence.
 
-Даже в `short` режиме нельзя убирать источники, свежесть данных, confidence level и ограничения. Если режим не указан, выбери `standard` для обычного запроса и `deep` для запроса на полный анализ.
+Даже в `short` режиме нельзя убирать источники, свежесть данных, confidence level и ограничения. Если режим не указан явно, всегда выбери `deep`.
 ## Горизонты анализа
 
 Всегда фиксируй основной горизонт и, если выводы различаются, разделяй их:
@@ -228,7 +244,7 @@
 17. **Сильные вопросы, которые вскрывают реальность**
 18. **Источники и надежность данных**
 
-Если пользователь просит короткий вариант, используй report_mode `short` из `configs/report_contract.yaml`: вердикт, драйверы, profit pool, valuation, риски / anti-thesis, next steps + sources / confidence. Если нужен компактный, но полноценный отчет, используй `standard`. Для глубокого анализа используй `deep` и 18 секций.
+Если пользователь просит короткий вариант, используй report_mode `short` из `configs/report_contract.yaml`: вердикт, драйверы, profit pool, valuation, риски / anti-thesis, next steps + sources / confidence. Если нужен компактный, но полноценный отчет, используй `standard`. Для глубокого анализа используй `deep` и 18 секций. Если пользователь не указал режим явно, используй `deep`.
 
 ## Правила стиля
 

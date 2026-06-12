@@ -18,23 +18,27 @@ PASS_DIR = ROOT / "evals" / "fixtures" / "pass"
 FAIL_DIR = ROOT / "evals" / "fixtures" / "fail"
 
 
-def mode_for(path: Path) -> str:
+def mode_for(path: Path) -> tuple[str, bool]:
     text = path.read_text(encoding="utf-8-sig", errors="ignore")
-    m = re.search(r"<!--\s*mode:\s*(short|standard|deep)\s*-->", text, re.I)
+    m = re.search(r"<!--\s*mode:\s*(short|standard|deep|default)\s*-->", text, re.I)
     if m:
-        return m.group(1).lower()
+        mode = m.group(1).lower()
+        if mode == "default":
+            return "deep", True
+        return mode, False
     if "standard" in path.name.lower():
-        return "standard"
+        return "standard", False
     if "short" in path.name.lower():
-        return "short"
-    return "deep"
+        return "short", False
+    return "deep", False
 
 
 def run_fixture(path: Path) -> int:
-    mode = mode_for(path)
-    cmd = [sys.executable, str(VALIDATOR), "--mode", mode, str(path)]
+    mode, use_default = mode_for(path)
+    cmd = [sys.executable, str(VALIDATOR), str(path)] if use_default else [sys.executable, str(VALIDATOR), "--mode", mode, str(path)]
     result = subprocess.run(cmd, cwd=str(ROOT), text=True, capture_output=True)
-    print(f"\n=== {path.relative_to(ROOT)} (mode={mode}) ===")
+    label = "default(deep)" if use_default else mode
+    print(f"\n=== {path.relative_to(ROOT)} (mode={label}) ===")
     print(result.stdout.strip())
     if result.stderr.strip():
         print(result.stderr.strip())

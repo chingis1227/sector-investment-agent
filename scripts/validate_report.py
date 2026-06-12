@@ -200,10 +200,19 @@ def validate(text: str, mode: str, contract: dict[str, Any]) -> tuple[int, int, 
         "Missing sections: " + ", ".join(missing_sections) if missing_sections else "",
     )
 
+    if mode == "deep":
+        add_check(
+            checks,
+            "deep mode has all 18 required sections",
+            len(mode_contract["required_sections"]) == 18 and not missing_sections,
+            "Deep mode must include all 18 sections from the report contract.",
+        )
+
     add_check(checks, "has no template placeholders", not has_placeholders(text, contract), "Replace template placeholders/TBD/TODO text with report-specific content.")
     add_check(checks, "has scope fields", contains_all_term_groups(text, contract["scope_terms"]), "Add date, sector, object type, geography, and horizon/scope.")
     add_check(checks, "has confidence level", has_confidence_level(text, contract), "Add confidence level and reason.")
 
+    evidence = section_after_titles(text, ["Evidence table", "Размер рынка и рост", "Market size and growth"])
     if mode_contract.get("require_evidence_table"):
         add_check(
             checks,
@@ -211,7 +220,14 @@ def validate(text: str, mode: str, contract: dict[str, Any]) -> tuple[int, int, 
             table_header_contains(text, contract["evidence_schema"]["required_fields"]),
             "Add evidence table with metric, Tier, value, observation period, publication/access dates, source, freshness, and reliability.",
         )
+        add_check(
+            checks,
+            "evidence table has at least one data row",
+            count_table_rows(evidence) >= 1,
+            "Add at least one report-specific evidence row.",
+        )
 
+    sources = section_after_titles(text, ["Источники и надежность данных", "Sources and data reliability", "Sources"])
     if mode_contract.get("require_source_table"):
         add_check(
             checks,
@@ -219,8 +235,13 @@ def validate(text: str, mode: str, contract: dict[str, Any]) -> tuple[int, int, 
             table_header_contains(text, contract["source_schema"]["required_fields"]),
             "Add source table with support, observation period, publication date, access date, freshness, reliability, and limitation.",
         )
+        add_check(
+            checks,
+            "source table has at least one source row",
+            count_table_rows(sources) >= 1,
+            "Add at least one concrete source row in the sources section.",
+        )
 
-    sources = section_after_titles(text, ["Источники и надежность данных", "Sources and data reliability", "Sources"])
     source_count = independent_source_count(sources)
     market_titles = ["Размер рынка и рост", "Market size and growth", "Evidence table"]
     market = section_after_titles(text, market_titles)
@@ -273,7 +294,7 @@ def validate(text: str, mode: str, contract: dict[str, Any]) -> tuple[int, int, 
         add_check(checks, "has final conclusion/verdict content", False, "Add final conclusion/verdict section.")
 
     high_confidence = confidence_is_high(text, contract)
-    stale_or_unknown = contains_any(market + "\n" + sources, contract["confidence"]["stale_markers"])
+    stale_or_unknown = contains_any(text, contract["confidence"]["stale_markers"])
     add_check(
         checks,
         "high confidence is not used with stale/unknown/limited data",
@@ -292,8 +313,14 @@ def main(argv: list[str] | None = None) -> int:
     contract = load_contract()
     parser = argparse.ArgumentParser(description="Validate Sector Investment Agent markdown reports.")
     parser.add_argument("report", help="Path to report markdown file")
-    parser.add_argument("--mode", choices=sorted(contract["modes"].keys()), default=contract.get("default_mode", "deep"))
+    parser.add_argument("--mode", choices=sorted(contract["modes"].keys()), default=None)
     args = parser.parse_args(argv)
+
+    default_mode = contract.get("default_mode", "deep")
+    if default_mode not in contract["modes"]:
+        print(f"ERROR: default_mode is not configured in modes: {default_mode}")
+        return 2
+    mode = args.mode or default_mode
 
     p = Path(args.report)
     if not p.exists():
@@ -305,13 +332,14 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR: this looks like an eval scenario document, not a report fixture. Move it under evals/scenarios or validate an actual report.")
         return 2
 
-    passed, total, checks = validate(text, args.mode, contract)
+    passed, total, checks = validate(text, mode, contract)
     for name, ok, fix in checks:
         status = "PASS" if ok else "FAIL"
         print(f"{status}: {name}")
         if not ok and fix:
             print(f"      Fix: {fix}")
-    print(f"\nScore: {passed}/{total} checks passed (mode={args.mode})")
+    mode_source = "explicit --mode" if args.mode else "configs/report_contract.yaml default_mode"
+    print(f"\nScore: {passed}/{total} checks passed (mode={mode}, mode_source={mode_source})")
     return 0 if passed == total else 1
 
 
